@@ -63,3 +63,20 @@ def registrar_pessoa_fisica(pessoa: PessoaFisica, session: Session=Depends(get_s
     session.commit()
     session.refresh(new_pessoa)
     return new_pessoa
+
+@app.put('/pessoa_fisica/{id}', response_model=PessoaFisicaPublic, status_code=HTTPStatus.OK)
+def atualizar_registro_pessoa_fisica(id: int, pessoa: PessoaFisica, session: Session = Depends(get_session)):
+    updated_pessoa = session.scalar(select(PessoaFisicaDB).where(PessoaFisicaDB.id == id))
+    if not updated_pessoa:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND,detail='Usuário informado não existe!')
+
+    updated_pessoa.nm_pessoa_fisica = pessoa.nm_pessoa_fisica
+    updated_pessoa.dt_nascimento = pessoa.dt_nascimento
+    updated_pessoa.qt_idade = pessoa.qt_idade
+    updated_pessoa.ie_sexo = pessoa.ie_sexo
+    updated_pessoa.nr_cpf = pessoa.nr_cpf
+    updated_pessoa.ds_senha = get_password_hash(pessoa.ds_senha)
+
+    session.commit()
+    session.refresh(updated_pessoa)
+    return updated_pessoa

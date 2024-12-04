@@ -1,6 +1,6 @@
 from sqlalchemy.orm import registry, Mapped, mapped_column
-from datetime import datetime, date
-from sqlalchemy import String, Integer, DateTime, func
+from datetime import datetime, date, timezone
+from sqlalchemy import  func, TIMESTAMP 
 
 # Registrador de tabelas
 table_registry = registry()
@@ -17,8 +17,8 @@ class PessoaFisicaDB:
     nr_cpf: Mapped[str] = mapped_column(nullable=False)
     nm_usuario: Mapped[str] = mapped_column(unique=True, nullable=False)
     ds_senha: Mapped[str] = mapped_column(nullable=False)
-    dt_nrec: Mapped[datetime] = mapped_column(init=False, nullable=True, server_default=func.now())
-    dt_updated: Mapped[datetime] = mapped_column(init=False, nullable=True,server_default=func.now(), onupdate=func.now())
+    dt_nrec: Mapped[datetime] = mapped_column(TIMESTAMP, init=False, nullable=False, server_default=func.now())
+    dt_updated: Mapped[datetime] = mapped_column(TIMESTAMP, init=False, nullable=True,server_default=func.now(), onupdate=func.now())
 
 @table_registry.mapped_as_dataclass
 class UsuarioDB:
@@ -28,3 +28,4 @@ class UsuarioDB:
     nm_usuario: Mapped[str] = mapped_column(unique=True, nullable=False)
     ds_senha: Mapped[str] = mapped_column(nullable=False)
     dt_nrec: Mapped[datetime] = mapped_column(init=False, nullable=True, server_default=func.now())
+ 
