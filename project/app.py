@@ -65,7 +65,7 @@ def registrar_pessoa_fisica(pessoa: PessoaFisica, session: Session=Depends(get_s
     session.refresh(new_pessoa)
     return new_pessoa
 
-@app.put('/pessoa_fisica/{id}', response_model=PessoaFisicaPublic, status_code=HTTPStatus.OK)
+@app.put('/pessoa_fisica/{id}', response_model=PessoaFisicaPublic, status_code=HTTPStatus.OK) #ATUALIZA TODOS OS DADOS DA TABELA
 def atualizar_registro_pessoa_fisica(id: int, pessoa: PessoaFisica, session: Session = Depends(get_session)):
     updated_pessoa = session.scalar(select(PessoaFisicaDB).where(PessoaFisicaDB.id == id))
     if not updated_pessoa:
@@ -88,12 +88,9 @@ def atualizar_dados_pessoa_fisica(id: int, usuario: UsuarioUpdate, session: Sess
     if not updated_usuario:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Usuário informado não existe!')
     update_data = usuario.dict(exclude_unset=True)  # Apenas os campos enviados na requisição
-    session.execute(update(UsuarioDB).where(UsuarioDB.user_id == id).values(**update_data))
+    session.execute(update(UsuarioDB).where(UsuarioDB.user_id == id).values(**update_data)) #Realiza o update no banco com os valores do update_data como nm_usuario = valor, ds_senha = valor
 
-    # Salva as alterações no banco de dados
-    #session.add(updated_usuario)
     session.commit()
     session.refresh(updated_usuario)
 
-    # Retorna o modelo atualizado como resposta
     return updated_usuario

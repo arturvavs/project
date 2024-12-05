@@ -27,5 +27,5 @@ class UsuarioDB:
     user_id: Mapped[int] = mapped_column(init=False, primary_key=True, autoincrement=True)
     nm_usuario: Mapped[str] = mapped_column(unique=True, nullable=False)
     ds_senha: Mapped[str] = mapped_column(nullable=False)
-    dt_nrec: Mapped[datetime] = mapped_column(init=False, nullable=True, server_default=func.now())
+    dt_updated: Mapped[datetime] = mapped_column(TIMESTAMP, init=False, nullable=True,server_default=func.now(), onupdate=func.now())
  

@@ -30,6 +30,7 @@ class Usuario(BaseModel):
 class UsuarioUpdate(BaseModel):
     nm_usuario: Optional[str] = None
     ds_senha: Optional[str] = None
+    #dt_updated: Optional[datetime] = None
 
 class UsuarioPublico(BaseModel):
     user_id: int
