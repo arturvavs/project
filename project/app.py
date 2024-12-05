@@ -1,11 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
-from project.schemas import Message, PessoasList, Usuario, UsuarioLista, UsuarioPublico, PessoaFisicaPublic,PessoaFisica
+from project.schemas import Message, PessoasList, Usuario, UsuarioLista, UsuarioPublico, PessoaFisicaPublic,PessoaFisica, UsuarioUpdate
 from project.database import get_session
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select,update
 from project.models import PessoaFisicaDB, UsuarioDB
 from http import HTTPStatus
 from project.security import get_password_hash, verify_password
+from fastapi.encoders import jsonable_encoder
 app = FastAPI()
 
 @app.get('/',
@@ -80,3 +81,19 @@ def atualizar_registro_pessoa_fisica(id: int, pessoa: PessoaFisica, session: Ses
     session.commit()
     session.refresh(updated_pessoa)
     return updated_pessoa
+
+@app.patch('/users/{id}', response_model= UsuarioUpdate, status_code=HTTPStatus.OK)
+def atualizar_dados_pessoa_fisica(id: int, usuario: UsuarioUpdate, session: Session = Depends(get_session)):
+    updated_usuario = session.scalar(select(UsuarioDB).where(UsuarioDB.user_id == id))
+    if not updated_usuario:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Usuário informado não existe!')
+    update_data = usuario.dict(exclude_unset=True)  # Apenas os campos enviados na requisição
+    session.execute(update(UsuarioDB).where(UsuarioDB.user_id == id).values(**update_data))
+
+    # Salva as alterações no banco de dados
+    #session.add(updated_usuario)
+    session.commit()
+    session.refresh(updated_usuario)
+
+    # Retorna o modelo atualizado como resposta
+    return updated_usuario

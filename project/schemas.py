@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, date
+from typing import Optional
 
 class PessoaFisica(BaseModel):
     id: int
@@ -26,12 +27,16 @@ class Usuario(BaseModel):
     nm_usuario: str 
     ds_senha: str
 
+class UsuarioUpdate(BaseModel):
+    nm_usuario: Optional[str] = None
+    ds_senha: Optional[str] = None
+
 class UsuarioPublico(BaseModel):
     user_id: int
     nm_usuario: str 
 
 class UsuarioLista(BaseModel):
-    users: list[Usuario]
+    users: list[UsuarioPublico]
 
 class PessoasList(BaseModel):
     users:list[PessoaFisicaPublic]
