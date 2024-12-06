@@ -1,12 +1,14 @@
 from fastapi import FastAPI, Depends, HTTPException
-from project.schemas import Message, PessoasList, Usuario, UsuarioLista, UsuarioPublico, PessoaFisicaPublic,PessoaFisica, UsuarioUpdate
+from project.schemas import Message, PessoasList, Usuario, UsuarioLista, UsuarioPublico, PessoaFisicaPublic,PessoaFisica, UsuarioUpdate, Token
 from project.database import get_session
 from sqlalchemy.orm import Session
 from sqlalchemy import select,update
 from project.models import PessoaFisicaDB, UsuarioDB
 from http import HTTPStatus
-from project.security import get_password_hash, verify_password
+from project.security import get_password_hash, verify_password, create_acess_token
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import OAuth2PasswordRequestForm
+
 app = FastAPI()
 
 @app.get('/',
@@ -84,13 +86,36 @@ def atualizar_registro_pessoa_fisica(id: int, pessoa: PessoaFisica, session: Ses
 
 @app.patch('/users/{id}', response_model= UsuarioUpdate, status_code=HTTPStatus.OK)
 def atualizar_dados_pessoa_fisica(id: int, usuario: UsuarioUpdate, session: Session = Depends(get_session)):
-    updated_usuario = session.scalar(select(UsuarioDB).where(UsuarioDB.user_id == id))
+    updated_usuario = session.scalar(
+        select(UsuarioDB).
+        where(UsuarioDB.user_id == id)
+        )
+
     if not updated_usuario:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Usuário informado não existe!')
-    update_data = usuario.dict(exclude_unset=True)  # Apenas os campos enviados na requisição
-    session.execute(update(UsuarioDB).where(UsuarioDB.user_id == id).values(**update_data)) #Realiza o update no banco com os valores do update_data como nm_usuario = valor, ds_senha = valor
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Usuário informado não existe!'
+            )
+    
+    update_data = usuario.model_dump(exclude_unset=True)  # Apenas os campos enviados na requisição
+    
+    session.execute(
+        update(UsuarioDB)
+        .where(UsuarioDB.user_id == id)
+        .values(**update_data)
+        ) #Realiza o update no banco com os valores do update_data como nm_usuario = valor, ds_senha = valor
 
     session.commit()
     session.refresh(updated_usuario)
 
     return updated_usuario
+
+@app.post('/token', response_model= Token)
+def login_for_acess_token(form: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    usuario = session.scalar(select(UsuarioDB).where(UsuarioDB.nm_usuario == form.username))
+    if not usuario or not verify_password(form.password,usuario.ds_senha):
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail= 'Usuário ou senha incorretos!')
+    print('Passou')
+    access_token = create_acess_token(data={'sub':usuario.nm_usuario})
+
+    return {'access_token':access_token, 'token_type':'Bearer'}

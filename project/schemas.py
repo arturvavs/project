@@ -30,7 +30,6 @@ class Usuario(BaseModel):
 class UsuarioUpdate(BaseModel):
     nm_usuario: Optional[str] = None
     ds_senha: Optional[str] = None
-    #dt_updated: Optional[datetime] = None
 
 class UsuarioPublico(BaseModel):
     user_id: int
@@ -44,3 +43,7 @@ class PessoasList(BaseModel):
 
 class Message(BaseModel):
     message: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
