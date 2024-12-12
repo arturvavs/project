@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select,update
 from project.models import PessoaFisicaDB, UsuarioDB
 from http import HTTPStatus
-from project.security import get_password_hash, verify_password, create_acess_token
+from project.security import get_password_hash, verify_password, create_acess_token, get_current_user
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -85,7 +85,12 @@ def atualizar_registro_pessoa_fisica(id: int, pessoa: PessoaFisica, session: Ses
     return updated_pessoa
 
 @app.patch('/users/{id}', response_model= UsuarioUpdate, status_code=HTTPStatus.OK)
-def atualizar_dados_pessoa_fisica(id: int, usuario: UsuarioUpdate, session: Session = Depends(get_session)):
+def atualizar_dados_pessoa_fisica(
+    id: int, 
+    usuario: UsuarioUpdate, 
+    session: Session = Depends(get_session), 
+    current_user = Depends(get_current_user)):
+    
     updated_usuario = session.scalar(
         select(UsuarioDB).
         where(UsuarioDB.user_id == id)
